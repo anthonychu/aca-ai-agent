@@ -1,0 +1,30 @@
+[tool.poetry]
+name = "aca-ai-agent"
+version = "0.1.0"
+description = ""
+authors = ["Anthony Chu <anthony@anthonychu.ca>"]
+license = "MIT"
+readme = "README.md"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.11"
+langchain = "^0.2.14"
+chainlit = "^1.1.402"
+python-dotenv = "^1.0.1"
+langchain-azure-dynamic-sessions = "^0.1.0"
+azure-identity = "^1.17.1"
+openai = "^1.42.0"
+langchainhub = "^0.1.21"
+langchain-openai = "^0.1.22"
+langchain-community = "^0.2.12"
+azure-search-documents = "^11.5.1"
+pymupdf = "^1.24.9"
+langchain-experimental = "^0.0.64"
+
+[tool.poetry.group.dev.dependencies]
+pandas = "^2.2.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

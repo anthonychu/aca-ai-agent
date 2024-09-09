@@ -4,12 +4,10 @@ var openAIAccountName = 'openai-${uniqueString(resourceGroup().id)}'
 var azureOpenAIRegion = 'canadaeast'
 
 var searchServiceName = 'search-${uniqueString(resourceGroup().id)}'
-
 var acrName = 'acr${uniqueString(resourceGroup().id)}'
-
 var logAnalyticsWorkspaceName = 'loganalytics-${uniqueString(resourceGroup().id)}'
-
 var acaEnvName = 'env-${uniqueString(resourceGroup().id)}'
+var sessionPoolName = 'sessionpool-${uniqueString(resourceGroup().id)}'
 
 resource openAIAccount 'Microsoft.CognitiveServices/accounts@2024-04-01-preview' = {
   name: openAIAccountName
@@ -29,7 +27,7 @@ resource ada002 'Microsoft.CognitiveServices/accounts/deployments@2024-04-01-pre
   name: 'text-embedding-ada-002'
   sku: {
     name: 'Standard'
-    capacity: 240
+    capacity: 150
   }
   properties: {
     model: {
@@ -38,7 +36,7 @@ resource ada002 'Microsoft.CognitiveServices/accounts/deployments@2024-04-01-pre
       version: '2'
     }
     versionUpgradeOption: 'OnceNewDefaultVersionAvailable'
-    currentCapacity: 240
+    currentCapacity: 150
     raiPolicyName: 'Microsoft.DefaultV2'
   }
 }
@@ -121,6 +119,12 @@ resource env 'Microsoft.App/managedEnvironments@2024-02-02-preview' = {
         sharedKey: logAnalyticsWorkspace.listKeys().primarySharedKey
       }
     }
+    workloadProfiles: [
+      {
+        name: 'Consumption'
+         workloadProfileType: 'Consumption'
+      }
+    ]
   }
   identity: {
     type: 'SystemAssigned'
@@ -137,4 +141,48 @@ resource acrRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' 
     principalType: 'ServicePrincipal'
   }
 }
+
+
+resource sessionPool 'Microsoft.App/sessionPools@2024-02-02-preview' = {
+  name: sessionPoolName
+  location: 'North Central US'
+  properties: {
+    poolManagementType: 'Dynamic'
+    containerType: 'PythonLTS'
+    scaleConfiguration: {
+      maxConcurrentSessions: 50
+    }
+    dynamicPoolConfiguration: {
+      executionType: 'Timed'
+      cooldownPeriodInSeconds: 300
+    }
+    sessionNetworkConfiguration: {
+      status: 'EgressDisabled'
+    }
+  }
+}
+
+
+module chatApp 'container-app.bicep' = {
+  name: 'container-app'
+  params: {
+    envId: env.id
+    searchEndpoint: 'https://${aiSearch.name}.search.windows.net'
+    openAIEndpoint: openAIAccount.properties.endpoint
+    sessionPoolEndpoint: sessionPool.properties.poolManagementEndpoint
+    acrServer: registry.properties.loginServer
+  }
+}
+
+var sessionExecutorRoleId = '0fb8eba5-a2bb-4abe-b1c1-49dfad359bb0'
+resource sessionExecutorRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(sessionPool.id, sessionExecutorRoleId, resourceGroup().id, 'chatapp')
+  scope: sessionPool
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', sessionExecutorRoleId)
+    principalId: chatApp.outputs.chatApp.identity.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
 

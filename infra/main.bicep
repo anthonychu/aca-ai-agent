@@ -8,6 +8,7 @@ var acrName = 'acr${uniqueString(resourceGroup().id)}'
 var logAnalyticsWorkspaceName = 'loganalytics-${uniqueString(resourceGroup().id)}'
 var acaEnvName = 'env-${uniqueString(resourceGroup().id)}'
 var sessionPoolName = 'sessionpool-${uniqueString(resourceGroup().id)}'
+var storageAccountName = 'acastorage${uniqueString(resourceGroup().id)}'
 
 resource openAIAccount 'Microsoft.CognitiveServices/accounts@2024-04-01-preview' = {
   name: openAIAccountName
@@ -37,6 +38,25 @@ resource ada002 'Microsoft.CognitiveServices/accounts/deployments@2024-04-01-pre
     }
     versionUpgradeOption: 'OnceNewDefaultVersionAvailable'
     currentCapacity: 150
+    raiPolicyName: 'Microsoft.DefaultV2'
+  }
+}
+
+resource gpt35turbo 'Microsoft.CognitiveServices/accounts/deployments@2024-04-01-preview' = {
+  parent: openAIAccount
+  name: 'gpt-35-turbo'
+  sku: {
+    name: 'Standard'
+    capacity: 100
+  }
+  properties: {
+    model: {
+      format: 'OpenAI'
+      name: 'gpt-35-turbo'
+      version: '1106'
+    }
+    versionUpgradeOption: 'OnceNewDefaultVersionAvailable'
+    currentCapacity: 100
     raiPolicyName: 'Microsoft.DefaultV2'
   }
 }
@@ -108,6 +128,28 @@ resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2023-09
 }
 
 
+resource storageAccount 'Microsoft.Storage/storageAccounts@2023-05-01' = {
+  name: storageAccountName
+  location: resourceGroup().location
+  sku: {
+    name: 'Standard_LRS'
+  }
+  kind: 'StorageV2'
+
+  resource fileService 'fileServices@2023-05-01' = {
+    name: 'default'
+    resource share 'shares@2023-05-01' = {
+      name: 'pdfs'
+      properties: {
+        enabledProtocols: 'SMB'
+        accessTier: 'TransactionOptimized'
+        shareQuota: 1024
+      }
+    }
+  }
+}
+
+
 resource env 'Microsoft.App/managedEnvironments@2024-02-02-preview' = {
   name: acaEnvName
   location: resourceGroup().location
@@ -128,6 +170,18 @@ resource env 'Microsoft.App/managedEnvironments@2024-02-02-preview' = {
   }
   identity: {
     type: 'SystemAssigned'
+  }
+
+  resource storages 'storages@2024-02-02-preview' = {
+    name: 'pdfs'
+    properties: {
+      azureFile: {
+        shareName: 'pdfs'
+        accountName: storageAccount.name
+        accountKey: storageAccount.listKeys().keys[0].value
+        accessMode: 'ReadWrite'
+      }
+    }
   }
 }
 
@@ -185,4 +239,80 @@ resource sessionExecutorRoleAssignment 'Microsoft.Authorization/roleAssignments@
   }
 }
 
+var searchIndexDataContributorRoleId = '8ebe5a00-799e-43f5-93ac-243d3dce84a7'
+resource appSearchIndexDataContributorRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(aiSearch.id, searchIndexDataContributorRoleId, resourceGroup().id, 'chatapp')
+  scope: aiSearch
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', searchIndexDataContributorRoleId)
+    principalId: chatApp.outputs.chatApp.identity.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
 
+var searchServiceContributorRoleId = '7ca78c08-252a-4471-8644-bb5ff32d4ba0'
+resource appSearchServiceContributorRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(aiSearch.id, searchServiceContributorRoleId, resourceGroup().id, 'chatapp')
+  scope: aiSearch
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', searchServiceContributorRoleId)
+    principalId: chatApp.outputs.chatApp.identity.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+var openAIUserRoleId = '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd'
+resource appOpenAIUserRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(openAIAccount.id, openAIUserRoleId, resourceGroup().id, 'chatapp')
+  scope: openAIAccount
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', openAIUserRoleId)
+    principalId: chatApp.outputs.chatApp.identity.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+
+module indexerJob 'container-job.bicep' = {
+  name: 'indexer-job'
+  params: {
+    envId: env.id
+    acrServer: registry.properties.loginServer
+    openAIEndpoint: openAIAccount.properties.endpoint
+    searchEndpoint: 'https://${aiSearch.name}.search.windows.net'
+  }
+}
+
+resource jobSearchIndexDataContributorRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(aiSearch.id, searchIndexDataContributorRoleId, resourceGroup().id, 'indexerjob')
+  scope: aiSearch
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', searchIndexDataContributorRoleId)
+    principalId: indexerJob.outputs.indexerJob.identity.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+resource jobSearchServiceContributorRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(aiSearch.id, searchServiceContributorRoleId, resourceGroup().id, 'indexerjob')
+  scope: aiSearch
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', searchServiceContributorRoleId)
+    principalId: indexerJob.outputs.indexerJob.identity.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+resource jobOpenAIUserRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(openAIAccount.id, openAIUserRoleId, resourceGroup().id, 'indexerjob')
+  scope: openAIAccount
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', openAIUserRoleId)
+    principalId: indexerJob.outputs.indexerJob.identity.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+output STORAGE_ACCOUNT_NAME string = storageAccount.name
+output ACR_NAME string = registry.name
+output RESOURCE_GROUP_NAME string = resourceGroup().name

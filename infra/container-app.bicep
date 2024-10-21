@@ -3,9 +3,9 @@ param acrServer string
 param searchEndpoint string
 param openAIEndpoint string
 param sessionPoolEndpoint string
+param tagName string
 
 // Use a tag to track the creation of the resource
-var tagName = 'chatAppExists'
 var appExists = contains(resourceGroup().tags, tagName) && resourceGroup().tags[tagName] == 'true'
 
 resource existingChatApp 'Microsoft.App/containerApps@2024-02-02-preview' existing = if (appExists) {
@@ -74,19 +74,6 @@ resource chatApp 'Microsoft.App/containerApps@2024-02-02-preview' = if (!appExis
   identity: {
     type: 'SystemAssigned'
   }
-}
-
-
-resource tags 'Microsoft.Resources/tags@2024-03-01' = {
-  name: 'default'
-  properties: {
-    tags: {
-      '${tagName}': 'true'
-    }
-  }
-  dependsOn: [
-    chatApp
-  ]
 }
 
 

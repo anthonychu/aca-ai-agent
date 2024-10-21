@@ -10,6 +10,8 @@ var acaEnvName = 'env-${uniqueString(resourceGroup().id)}'
 var sessionPoolName = 'sessionpool-${uniqueString(resourceGroup().id)}'
 var storageAccountName = 'acastorage${uniqueString(resourceGroup().id)}'
 
+var tagName = 'resourcesExist'
+
 resource openAIAccount 'Microsoft.CognitiveServices/accounts@2024-04-01-preview' = {
   name: openAIAccountName
   location: azureOpenAIRegion
@@ -225,6 +227,7 @@ module chatApp 'container-app.bicep' = {
     openAIEndpoint: openAIAccount.properties.endpoint
     sessionPoolEndpoint: sessionPool.properties.poolManagementEndpoint
     acrServer: registry.properties.loginServer
+    tagName: tagName
   }
 }
 
@@ -280,6 +283,7 @@ module indexerJob 'container-job.bicep' = {
     acrServer: registry.properties.loginServer
     openAIEndpoint: openAIAccount.properties.endpoint
     searchEndpoint: 'https://${aiSearch.name}.search.windows.net'
+    tagName: tagName
   }
 }
 
@@ -311,6 +315,20 @@ resource jobOpenAIUserRoleAssignment 'Microsoft.Authorization/roleAssignments@20
     principalId: indexerJob.outputs.indexerJob.identity.principalId
     principalType: 'ServicePrincipal'
   }
+}
+
+
+resource tags 'Microsoft.Resources/tags@2024-03-01' = {
+  name: 'default'
+  properties: {
+    tags: {
+      '${tagName}': 'true'
+    }
+  }
+  dependsOn: [
+    chatApp
+    indexerJob
+  ]
 }
 
 output STORAGE_ACCOUNT_NAME string = storageAccount.name

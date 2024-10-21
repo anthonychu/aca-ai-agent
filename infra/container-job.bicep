@@ -2,9 +2,9 @@ param envId string
 param acrServer string
 param searchEndpoint string
 param openAIEndpoint string
+param tagName string
 
 // Use a tag to track the creation of the resource
-var tagName = 'indexerJobExists'
 var indexerJobExists = contains(resourceGroup().tags, tagName) && resourceGroup().tags[tagName] == 'true'
 
 var jobName = 'indexer-job'
@@ -87,18 +87,6 @@ resource indexerJob 'Microsoft.App/jobs@2024-02-02-preview' = {
   identity: {
     type: 'SystemAssigned'
   }
-}
-
-resource tags 'Microsoft.Resources/tags@2024-03-01' = {
-  name: 'default'
-  properties: {
-    tags: {
-      '${tagName}': 'true'
-    }
-  }
-  dependsOn: [
-    indexerJob
-  ]
 }
 
 

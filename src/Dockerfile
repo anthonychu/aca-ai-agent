@@ -28,4 +28,7 @@ COPY . .
 # strip Windows line endings and set execute bit
 RUN sed -i 's/\r$//' entrypoint.sh && chmod +x entrypoint.sh
 
+# ensure /app/sample-data exists
+RUN mkdir -p /app/sample-data
+
 ENTRYPOINT ["./entrypoint.sh"]

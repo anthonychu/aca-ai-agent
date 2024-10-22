@@ -1,7 +1,18 @@
 targetScope = 'resourceGroup'
 
 var openAIAccountName = 'openai-${uniqueString(resourceGroup().id)}'
-var azureOpenAIRegion = resourceGroup().location
+
+@allowed([
+  'Canada East'
+  'Australia East'
+  'France Central'
+  'South India'
+  'Sweden Central'
+  'UK South'
+  'West US'
+])
+@description('The region where the Azure OpenAI account will be created.')
+param azureOpenAIRegion string
 
 var searchServiceName = 'search-${uniqueString(resourceGroup().id)}'
 var acrName = 'acr${uniqueString(resourceGroup().id)}'
@@ -334,3 +345,4 @@ resource tags 'Microsoft.Resources/tags@2024-03-01' = {
 output STORAGE_ACCOUNT_NAME string = storageAccount.name
 output ACR_NAME string = registry.name
 output RESOURCE_GROUP_NAME string = resourceGroup().name
+output CONTAINER_APP_URL string = 'https://${chatApp.outputs.chatApp.properties.configuration.ingress.fqdn}'

@@ -1,7 +1,7 @@
 targetScope = 'resourceGroup'
 
 var openAIAccountName = 'openai-${uniqueString(resourceGroup().id)}'
-var azureOpenAIRegion = 'canadaeast'
+var azureOpenAIRegion = resourceGroup().location
 
 var searchServiceName = 'search-${uniqueString(resourceGroup().id)}'
 var acrName = 'acr${uniqueString(resourceGroup().id)}'

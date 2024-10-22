@@ -72,6 +72,9 @@ resource gpt35turbo 'Microsoft.CognitiveServices/accounts/deployments@2024-04-01
     currentCapacity: 100
     raiPolicyName: 'Microsoft.DefaultV2'
   }
+  dependsOn: [
+    ada002
+  ]
 }
 
 

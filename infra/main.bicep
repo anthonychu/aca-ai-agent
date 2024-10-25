@@ -215,7 +215,7 @@ resource acrRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' 
 
 resource sessionPool 'Microsoft.App/sessionPools@2024-02-02-preview' = {
   name: sessionPoolName
-  location: 'North Central US'
+  location: resourceGroup().location
   properties: {
     poolManagementType: 'Dynamic'
     containerType: 'PythonLTS'

@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.30.23.60470",
-      "templateHash": "3908738717959775776"
+      "templateHash": "17150321364502654458"
     }
   },
   "parameters": {
@@ -28,12 +28,12 @@
   },
   "variables": {
     "openAIAccountName": "[format('openai-{0}', uniqueString(resourceGroup().id))]",
-    "searchServiceName": "[format('search-{0}', uniqueString(resourceGroup().id))]",
-    "acrName": "[format('acr{0}', uniqueString(resourceGroup().id))]",
-    "logAnalyticsWorkspaceName": "[format('loganalytics-{0}', uniqueString(resourceGroup().id))]",
-    "acaEnvName": "lab-env",
-    "sessionPoolName": "lab-sessionpool",
-    "storageAccountName": "[format('acastorage{0}', uniqueString(resourceGroup().id))]",
+    "searchServiceName": "[format('srch-lab-search-{0}', uniqueString(resourceGroup().id))]",
+    "acrName": "[format('crlabregistry{0}', uniqueString(resourceGroup().id))]",
+    "logAnalyticsWorkspaceName": "[format('log-lab-loganalytics-{0}', uniqueString(resourceGroup().id))]",
+    "acaEnvName": "cae-lab-env",
+    "sessionPoolName": "cas-lab-sessionpool",
+    "storageAccountName": "[format('stlabstorage{0}', uniqueString(resourceGroup().id))]",
     "tagName": "resourcesExist",
     "acrPullRoleId": "7f951dda-4ed3-4680-a7ca-43fe172d538d",
     "sessionExecutorRoleId": "0fb8eba5-a2bb-4abe-b1c1-49dfad359bb0",
@@ -260,7 +260,7 @@
       "type": "Microsoft.App/sessionPools",
       "apiVersion": "2024-02-02-preview",
       "name": "[variables('sessionPoolName')]",
-      "location": "North Central US",
+      "location": "[resourceGroup().location]",
       "properties": {
         "poolManagementType": "Dynamic",
         "containerType": "PythonLTS",

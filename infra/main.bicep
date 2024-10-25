@@ -14,12 +14,12 @@ var openAIAccountName = 'openai-${uniqueString(resourceGroup().id)}'
 @description('The region where the Azure OpenAI account will be created.')
 param azureOpenAIRegion string = 'Canada East'
 
-var searchServiceName = 'search-${uniqueString(resourceGroup().id)}'
-var acrName = 'acr${uniqueString(resourceGroup().id)}'
-var logAnalyticsWorkspaceName = 'loganalytics-${uniqueString(resourceGroup().id)}'
-var acaEnvName = 'lab-env'
-var sessionPoolName = 'lab-sessionpool'
-var storageAccountName = 'acastorage${uniqueString(resourceGroup().id)}'
+var searchServiceName = 'srch-lab-search-${uniqueString(resourceGroup().id)}'
+var acrName = 'crlabregistry${uniqueString(resourceGroup().id)}'
+var logAnalyticsWorkspaceName = 'log-lab-loganalytics-${uniqueString(resourceGroup().id)}'
+var acaEnvName = 'cae-lab-env'
+var sessionPoolName = 'cas-lab-sessionpool'
+var storageAccountName = 'stlabstorage${uniqueString(resourceGroup().id)}'
 
 var tagName = 'resourcesExist'
 

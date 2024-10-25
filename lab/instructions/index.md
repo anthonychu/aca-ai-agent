@@ -1,3 +1,6 @@
+
+![Container Apps](container-apps.svg)
+
 1. Clone repo.
 
 1. Set up role assignments.

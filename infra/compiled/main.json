@@ -5,12 +5,13 @@
     "_generator": {
       "name": "bicep",
       "version": "0.30.23.60470",
-      "templateHash": "12992186618233958180"
+      "templateHash": "3908738717959775776"
     }
   },
   "parameters": {
     "azureOpenAIRegion": {
       "type": "string",
+      "defaultValue": "Canada East",
       "allowedValues": [
         "Canada East",
         "Australia East",
@@ -30,8 +31,8 @@
     "searchServiceName": "[format('search-{0}', uniqueString(resourceGroup().id))]",
     "acrName": "[format('acr{0}', uniqueString(resourceGroup().id))]",
     "logAnalyticsWorkspaceName": "[format('loganalytics-{0}', uniqueString(resourceGroup().id))]",
-    "acaEnvName": "[format('env-{0}', uniqueString(resourceGroup().id))]",
-    "sessionPoolName": "[format('sessionpool-{0}', uniqueString(resourceGroup().id))]",
+    "acaEnvName": "lab-env",
+    "sessionPoolName": "lab-sessionpool",
     "storageAccountName": "[format('acastorage{0}', uniqueString(resourceGroup().id))]",
     "tagName": "resourcesExist",
     "acrPullRoleId": "7f951dda-4ed3-4680-a7ca-43fe172d538d",

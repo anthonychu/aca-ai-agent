@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.30.23.60470",
-      "templateHash": "17150321364502654458"
+      "templateHash": "2855540936354209977"
     }
   },
   "parameters": {
@@ -33,7 +33,8 @@
     "logAnalyticsWorkspaceName": "[format('log-lab-loganalytics-{0}', uniqueString(resourceGroup().id))]",
     "acaEnvName": "cae-lab-env",
     "sessionPoolName": "cas-lab-sessionpool",
-    "storageAccountName": "[format('stlabstorage{0}', uniqueString(resourceGroup().id))]",
+    "storageAccountName": "[format('stlab{0}', uniqueString(resourceGroup().id))]",
+    "sessionPoolLocation": "North Central US",
     "tagName": "resourcesExist",
     "acrPullRoleId": "7f951dda-4ed3-4680-a7ca-43fe172d538d",
     "sessionExecutorRoleId": "0fb8eba5-a2bb-4abe-b1c1-49dfad359bb0",
@@ -260,7 +261,7 @@
       "type": "Microsoft.App/sessionPools",
       "apiVersion": "2024-02-02-preview",
       "name": "[variables('sessionPoolName')]",
-      "location": "[resourceGroup().location]",
+      "location": "[variables('sessionPoolLocation')]",
       "properties": {
         "poolManagementType": "Dynamic",
         "containerType": "PythonLTS",

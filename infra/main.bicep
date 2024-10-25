@@ -19,7 +19,8 @@ var acrName = 'crlabregistry${uniqueString(resourceGroup().id)}'
 var logAnalyticsWorkspaceName = 'log-lab-loganalytics-${uniqueString(resourceGroup().id)}'
 var acaEnvName = 'cae-lab-env'
 var sessionPoolName = 'cas-lab-sessionpool'
-var storageAccountName = 'stlabstorage${uniqueString(resourceGroup().id)}'
+var storageAccountName = 'stlab${uniqueString(resourceGroup().id)}'
+var sessionPoolLocation = 'North Central US'
 
 var tagName = 'resourcesExist'
 
@@ -215,7 +216,7 @@ resource acrRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' 
 
 resource sessionPool 'Microsoft.App/sessionPools@2024-02-02-preview' = {
   name: sessionPoolName
-  location: resourceGroup().location
+  location: sessionPoolLocation
   properties: {
     poolManagementType: 'Dynamic'
     containerType: 'PythonLTS'

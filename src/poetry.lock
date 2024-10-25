@@ -1146,20 +1146,20 @@ requests = ">=2.31.0,<3.0.0"
 
 [[package]]
 name = "langchain-community"
-version = "0.2.14"
+version = "0.2.15"
 description = "Community contributed LangChain integrations."
 optional = false
 python-versions = "<4.0,>=3.8.1"
 files = [
-    {file = "langchain_community-0.2.14-py3-none-any.whl", hash = "sha256:8ebf42e6c14be95fb5d86450785ac802f60a10e382bb6548af0dcc05323d4819"},
-    {file = "langchain_community-0.2.14.tar.gz", hash = "sha256:70e5c51863e93705517527f1ed30a8a5db3920e48331592f98edcafb13134017"},
+    {file = "langchain_community-0.2.15-py3-none-any.whl", hash = "sha256:edcf8e9829559822a044a193b66cbea40600b8b9ce9b435fa0ae96f69377be46"},
+    {file = "langchain_community-0.2.15.tar.gz", hash = "sha256:5bd5a6d055b07ee228eb6a9f0ca59d8124a1d450e4c82a6a62cec3add3cb73a9"},
 ]
 
 [package.dependencies]
 aiohttp = ">=3.8.3,<4.0.0"
 dataclasses-json = ">=0.5.7,<0.7"
 langchain = ">=0.2.15,<0.3.0"
-langchain-core = "0.2.36"
+langchain-core = ">=0.2.37,<0.3.0"
 langsmith = ">=0.1.0,<0.2.0"
 numpy = [
     {version = ">=1,<2", markers = "python_version < \"3.12\""},
@@ -1172,13 +1172,13 @@ tenacity = ">=8.1.0,<8.4.0 || >8.4.0,<9.0.0"
 
 [[package]]
 name = "langchain-core"
-version = "0.2.36"
+version = "0.2.38"
 description = "Building applications with LLMs through composability"
 optional = false
 python-versions = "<4.0,>=3.8.1"
 files = [
-    {file = "langchain_core-0.2.36-py3-none-any.whl", hash = "sha256:eabce6e7538cb9dc60db4bc1eb584bbb91a5e7e02a96d5b65b4a6ab151081b6d"},
-    {file = "langchain_core-0.2.36.tar.gz", hash = "sha256:56f2367070e8afc43922bba1d046035a144b4e732a5474676403bd0eb33d85f2"},
+    {file = "langchain_core-0.2.38-py3-none-any.whl", hash = "sha256:8a5729bc7e68b4af089af20eff44fe4e7ca21d0e0c87ec21cef7621981fd1a4a"},
+    {file = "langchain_core-0.2.38.tar.gz", hash = "sha256:eb69dbedd344f2ee1f15bcea6c71a05884b867588fadc42d04632e727c1238f3"},
 ]
 
 [package.dependencies]
@@ -3022,4 +3022,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "184a9b0154ca9f06ee2b2bb07df7cfe14fb23b9d60f2586ad2473a7e1938ee99"
+content-hash = "422f3de328126cccb538a9b7a545c1f83bf54b19d09a3ae9871b93e1c63fd72b"

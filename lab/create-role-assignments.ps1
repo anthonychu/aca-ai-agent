@@ -1,4 +1,6 @@
-$RESOURCE_GROUP_NAME = "20241022-test-lab-deploy"
+$ErrorActionPreference = "SilentlyContinue"
+
+$RESOURCE_GROUP_NAME = "ResourceGroup1"
 
 $USER_NAME = az account show -o tsv --query user.name
 

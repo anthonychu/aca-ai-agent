@@ -1,5 +1,5 @@
 
-![Container Apps](container-apps.svg)
+![Container Apps](images/container-apps.svg)
 
 1. Clone repo.
 

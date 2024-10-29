@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.30.23.60470",
-      "templateHash": "2855540936354209977"
+      "templateHash": "12305235800418925689"
     }
   },
   "parameters": {
@@ -573,7 +573,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.30.23.60470",
-              "templateHash": "10609704085844403360"
+              "templateHash": "17947062254152662951"
             }
           },
           "parameters": {
@@ -627,9 +627,6 @@
                     {
                       "image": "[if(variables('indexerJobExists'), reference(resourceId('Microsoft.Resources/deployments', 'existing-indexer-job'), '2022-09-01').outputs.existingIndexerJob.value.properties.template.containers[0].image, 'mcr.microsoft.com/k8se/quickstart-jobs:latest')]",
                       "name": "job",
-                      "args": [
-                        "indexer_job"
-                      ],
                       "env": [
                         {
                           "name": "AZURE_OPENAI_ENDPOINT",

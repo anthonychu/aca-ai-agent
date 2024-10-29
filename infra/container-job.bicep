@@ -35,7 +35,8 @@ resource indexerJob 'Microsoft.App/jobs@2024-02-02-preview' = {
       replicaRetryLimit: 0
       scheduleTriggerConfig: {
         replicaCompletionCount: 1
-        cronExpression: '*/5 * * * *'
+        // every hour
+        cronExpression: '0 * * * *'
         parallelism: 1
       }
       registries: [

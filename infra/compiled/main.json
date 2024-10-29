@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.30.23.60470",
-      "templateHash": "12305235800418925689"
+      "templateHash": "9801686265707538641"
     }
   },
   "parameters": {
@@ -573,7 +573,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.30.23.60470",
-              "templateHash": "17947062254152662951"
+              "templateHash": "11298819567915942976"
             }
           },
           "parameters": {
@@ -612,7 +612,7 @@
                   "replicaRetryLimit": 0,
                   "scheduleTriggerConfig": {
                     "replicaCompletionCount": 1,
-                    "cronExpression": "*/5 * * * *",
+                    "cronExpression": "0 * * * *",
                     "parallelism": 1
                   },
                   "registries": [

@@ -37,7 +37,9 @@ async def on_chat_start():
         "Searches and returns excerpts from documents that contain useful information.",
     )
 
-    code_interpreter_tool = PythonREPLTool()
+    code_interpreter_tool = SessionsPythonREPLTool(
+        pool_management_endpoint=os.environ["POOL_MANAGEMENT_ENDPOINT"],
+    )
     code_interpreter_tool.description += " To see the result, you MUST use the `print` function."
 
     tools = [

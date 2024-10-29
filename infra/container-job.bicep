@@ -50,9 +50,6 @@ resource indexerJob 'Microsoft.App/jobs@2024-02-02-preview' = {
         {
           image: containerImage
           name: 'job'
-          args: [
-            'indexer_job'
-          ]
           env: [
             {
               name: 'AZURE_OPENAI_ENDPOINT'

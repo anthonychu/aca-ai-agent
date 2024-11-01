@@ -346,6 +346,28 @@ resource tags 'Microsoft.Resources/tags@2024-03-01' = {
   ]
 }
 
+resource helloApp 'Microsoft.App/containerApps@2024-03-01' = {
+  name: 'hello-app'
+  location: resourceGroup().location
+  properties: {
+    managedEnvironmentId: env.id
+    configuration: {
+      ingress: {
+        external: true
+        targetPort: 80
+      }
+    }
+    template: {
+      containers: [
+        {
+          name: 'hello-app'
+          image: 'mcr.microsoft.com/k8se/quickstart:latest'
+        }
+      ]
+    }
+  }
+}
+
 output STORAGE_ACCOUNT_NAME string = storageAccount.name
 output ACR_NAME string = registry.name
 output RESOURCE_GROUP_NAME string = resourceGroup().name

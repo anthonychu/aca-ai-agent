@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.30.23.60470",
-      "templateHash": "16712590400108494085"
+      "templateHash": "4737263412257940184"
     }
   },
   "parameters": {
@@ -24,6 +24,10 @@
       "metadata": {
         "description": "The region where the Azure OpenAI account will be created."
       }
+    },
+    "sessionPoolLocation": {
+      "type": "string",
+      "defaultValue": "North Central US"
     }
   },
   "variables": {
@@ -34,7 +38,6 @@
     "acaEnvName": "cae-lab-env",
     "sessionPoolName": "cas-lab-sessionpool",
     "storageAccountName": "[format('stlab{0}', uniqueString(resourceGroup().id))]",
-    "sessionPoolLocation": "North Central US",
     "tagName": "resourcesExist",
     "acrPullRoleId": "7f951dda-4ed3-4680-a7ca-43fe172d538d",
     "sessionExecutorRoleId": "0fb8eba5-a2bb-4abe-b1c1-49dfad359bb0",
@@ -261,7 +264,7 @@
       "type": "Microsoft.App/sessionPools",
       "apiVersion": "2024-02-02-preview",
       "name": "[variables('sessionPoolName')]",
-      "location": "[variables('sessionPoolLocation')]",
+      "location": "[parameters('sessionPoolLocation')]",
       "properties": {
         "poolManagementType": "Dynamic",
         "containerType": "PythonLTS",

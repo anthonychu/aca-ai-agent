@@ -3,15 +3,12 @@ param acrServer string
 param searchEndpoint string
 param openAIEndpoint string
 param tagName string
+param location string
 
 // Use a tag to track the creation of the resource
 var indexerJobExists = contains(resourceGroup().tags, tagName) && resourceGroup().tags[tagName] == 'true'
 
 var jobName = 'indexer-job'
-
-// resource existingIndexerJob 'Microsoft.App/jobs@2024-02-02-preview' existing = if (indexerJobExists) {
-//   name: jobName
-// }
 
 module existingIndexerJob 'existing-job.bicep' = if (indexerJobExists) {
   name: 'existing-indexer-job'
@@ -25,7 +22,7 @@ var containerImage = indexerJobExists ? existingIndexerJob.outputs.existingIndex
 
 resource indexerJob 'Microsoft.App/jobs@2024-02-02-preview' = {
   name: jobName
-  location: resourceGroup().location
+  location: location
   properties: {
     environmentId: envId
     workloadProfileName: 'Consumption'

@@ -4,31 +4,34 @@
   "metadata": {
     "_generator": {
       "name": "bicep",
-      "version": "0.31.34.60546",
-      "templateHash": "14419689697583240972"
+      "version": "0.30.23.60470",
+      "templateHash": "4737263412257940184"
     }
   },
   "parameters": {
-    "azureOpenAILocation": {
+    "azureOpenAIRegion": {
       "type": "string",
-      "defaultValue": "[resourceGroup().location]",
+      "defaultValue": "Canada East",
+      "allowedValues": [
+        "Canada East",
+        "Australia East",
+        "France Central",
+        "South India",
+        "Sweden Central",
+        "UK South",
+        "West US"
+      ],
       "metadata": {
         "description": "The region where the Azure OpenAI account will be created."
       }
     },
     "sessionPoolLocation": {
       "type": "string",
-      "defaultValue": ""
-    },
-    "containerAppsLocation": {
-      "type": "string",
-      "defaultValue": "Australia East"
+      "defaultValue": "North Central US"
     }
   },
   "variables": {
     "openAIAccountName": "[format('openai-{0}', uniqueString(resourceGroup().id))]",
-    "trimmedResourceGroupLocation": "[trim(toLower(resourceGroup().location))]",
-    "actualSessionPoolLocation": "[if(not(empty(parameters('sessionPoolLocation'))), parameters('sessionPoolLocation'), if(or(equals(variables('trimmedResourceGroupLocation'), 'australiaeast'), equals(variables('trimmedResourceGroupLocation'), 'swedencentral')), resourceGroup().location, 'North Central US'))]",
     "searchServiceName": "[format('srch-lab-search-{0}', uniqueString(resourceGroup().id))]",
     "acrName": "[format('crlabregistry{0}', uniqueString(resourceGroup().id))]",
     "logAnalyticsWorkspaceName": "[format('log-lab-loganalytics-{0}', uniqueString(resourceGroup().id))]",
@@ -37,6 +40,7 @@
     "storageAccountName": "[format('stlab{0}', uniqueString(resourceGroup().id))]",
     "tagName": "resourcesExist",
     "acrPullRoleId": "7f951dda-4ed3-4680-a7ca-43fe172d538d",
+    "sessionExecutorRoleId": "0fb8eba5-a2bb-4abe-b1c1-49dfad359bb0",
     "searchIndexDataContributorRoleId": "8ebe5a00-799e-43f5-93ac-243d3dce84a7",
     "searchServiceContributorRoleId": "7ca78c08-252a-4471-8644-bb5ff32d4ba0",
     "openAIUserRoleId": "5e0bd9bd-7b93-4f28-af87-19fc36ad61bd"
@@ -84,7 +88,7 @@
       "type": "Microsoft.CognitiveServices/accounts",
       "apiVersion": "2024-04-01-preview",
       "name": "[variables('openAIAccountName')]",
-      "location": "[parameters('azureOpenAILocation')]",
+      "location": "[parameters('azureOpenAIRegion')]",
       "sku": {
         "name": "S0"
       },
@@ -218,7 +222,7 @@
       "type": "Microsoft.App/managedEnvironments",
       "apiVersion": "2024-02-02-preview",
       "name": "[variables('acaEnvName')]",
-      "location": "[parameters('containerAppsLocation')]",
+      "location": "[resourceGroup().location]",
       "properties": {
         "appLogsConfiguration": {
           "destination": "log-analytics",
@@ -254,6 +258,41 @@
       "dependsOn": [
         "[resourceId('Microsoft.App/managedEnvironments', variables('acaEnvName'))]",
         "[resourceId('Microsoft.ContainerRegistry/registries', variables('acrName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.App/sessionPools",
+      "apiVersion": "2024-02-02-preview",
+      "name": "[variables('sessionPoolName')]",
+      "location": "[parameters('sessionPoolLocation')]",
+      "properties": {
+        "poolManagementType": "Dynamic",
+        "containerType": "PythonLTS",
+        "scaleConfiguration": {
+          "maxConcurrentSessions": 50
+        },
+        "dynamicPoolConfiguration": {
+          "executionType": "Timed",
+          "cooldownPeriodInSeconds": 300
+        },
+        "sessionNetworkConfiguration": {
+          "status": "EgressDisabled"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "scope": "[format('Microsoft.App/sessionPools/{0}', variables('sessionPoolName'))]",
+      "name": "[guid(resourceId('Microsoft.App/sessionPools', variables('sessionPoolName')), variables('sessionExecutorRoleId'), resourceGroup().id, 'chatapp')]",
+      "properties": {
+        "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('sessionExecutorRoleId'))]",
+        "principalId": "[reference(resourceId('Microsoft.Resources/deployments', 'container-app'), '2022-09-01').outputs.chatApp.value.identity.principalId]",
+        "principalType": "ServicePrincipal"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/deployments', 'container-app')]",
+        "[resourceId('Microsoft.App/sessionPools', variables('sessionPoolName'))]"
       ]
     },
     {
@@ -361,70 +400,30 @@
       ]
     },
     {
-      "type": "Microsoft.Resources/deployments",
-      "apiVersion": "2022-09-01",
-      "name": "session-pool",
+      "type": "Microsoft.App/containerApps",
+      "apiVersion": "2024-03-01",
+      "name": "hello-app",
+      "location": "[resourceGroup().location]",
       "properties": {
-        "expressionEvaluationOptions": {
-          "scope": "inner"
-        },
-        "mode": "Incremental",
-        "parameters": {
-          "name": {
-            "value": "[variables('sessionPoolName')]"
-          },
-          "location": {
-            "value": "[variables('actualSessionPoolLocation')]"
+        "managedEnvironmentId": "[resourceId('Microsoft.App/managedEnvironments', variables('acaEnvName'))]",
+        "configuration": {
+          "ingress": {
+            "external": true,
+            "targetPort": 80
           }
         },
         "template": {
-          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-          "contentVersion": "1.0.0.0",
-          "metadata": {
-            "_generator": {
-              "name": "bicep",
-              "version": "0.31.34.60546",
-              "templateHash": "5670305788159530915"
-            }
-          },
-          "parameters": {
-            "location": {
-              "type": "string"
-            },
-            "name": {
-              "type": "string"
-            }
-          },
-          "resources": [
+          "containers": [
             {
-              "type": "Microsoft.App/sessionPools",
-              "apiVersion": "2024-02-02-preview",
-              "name": "[parameters('name')]",
-              "location": "[parameters('location')]",
-              "properties": {
-                "poolManagementType": "Dynamic",
-                "containerType": "PythonLTS",
-                "scaleConfiguration": {
-                  "maxConcurrentSessions": 50
-                },
-                "dynamicPoolConfiguration": {
-                  "executionType": "Timed",
-                  "cooldownPeriodInSeconds": 300
-                },
-                "sessionNetworkConfiguration": {
-                  "status": "EgressDisabled"
-                }
-              }
+              "name": "hello-app",
+              "image": "mcr.microsoft.com/k8se/quickstart:latest"
             }
-          ],
-          "outputs": {
-            "sessionPool": {
-              "type": "object",
-              "value": "[reference(resourceId('Microsoft.App/sessionPools', parameters('name')), '2024-02-02-preview', 'full')]"
-            }
-          }
+          ]
         }
-      }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.App/managedEnvironments', variables('acaEnvName'))]"
+      ]
     },
     {
       "type": "Microsoft.Resources/deployments",
@@ -446,16 +445,13 @@
             "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts', variables('openAIAccountName')), '2024-04-01-preview').endpoint]"
           },
           "sessionPoolEndpoint": {
-            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'session-pool'), '2022-09-01').outputs.sessionPool.value.properties.poolManagementEndpoint]"
+            "value": "[reference(resourceId('Microsoft.App/sessionPools', variables('sessionPoolName')), '2024-02-02-preview').poolManagementEndpoint]"
           },
           "acrServer": {
             "value": "[reference(resourceId('Microsoft.ContainerRegistry/registries', variables('acrName')), '2023-11-01-preview').loginServer]"
           },
           "tagName": {
             "value": "[variables('tagName')]"
-          },
-          "location": {
-            "value": "[parameters('containerAppsLocation')]"
           }
         },
         "template": {
@@ -464,8 +460,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.31.34.60546",
-              "templateHash": "18009550643269005778"
+              "version": "0.30.23.60470",
+              "templateHash": "11521714871433213345"
             }
           },
           "parameters": {
@@ -486,9 +482,6 @@
             },
             "tagName": {
               "type": "string"
-            },
-            "location": {
-              "type": "string"
             }
           },
           "variables": {
@@ -500,7 +493,7 @@
               "type": "Microsoft.App/containerApps",
               "apiVersion": "2024-02-02-preview",
               "name": "chat-app",
-              "location": "[parameters('location')]",
+              "location": "[resourceGroup().location]",
               "properties": {
                 "environmentId": "[parameters('envId')]",
                 "workloadProfileName": "Consumption",
@@ -573,65 +566,7 @@
         "[resourceId('Microsoft.App/managedEnvironments', variables('acaEnvName'))]",
         "[resourceId('Microsoft.CognitiveServices/accounts', variables('openAIAccountName'))]",
         "[resourceId('Microsoft.ContainerRegistry/registries', variables('acrName'))]",
-        "[resourceId('Microsoft.Resources/deployments', 'session-pool')]"
-      ]
-    },
-    {
-      "type": "Microsoft.Resources/deployments",
-      "apiVersion": "2022-09-01",
-      "name": "session-pool-role-assignment",
-      "properties": {
-        "expressionEvaluationOptions": {
-          "scope": "inner"
-        },
-        "mode": "Incremental",
-        "parameters": {
-          "chatApp": {
-            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'container-app'), '2022-09-01').outputs.chatApp.value]"
-          },
-          "sessionPoolName": {
-            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'session-pool'), '2022-09-01').outputs.sessionPool.value.Name]"
-          }
-        },
-        "template": {
-          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-          "contentVersion": "1.0.0.0",
-          "metadata": {
-            "_generator": {
-              "name": "bicep",
-              "version": "0.31.34.60546",
-              "templateHash": "2072081432453139193"
-            }
-          },
-          "parameters": {
-            "sessionPoolName": {
-              "type": "string"
-            },
-            "chatApp": {
-              "type": "object"
-            }
-          },
-          "variables": {
-            "sessionExecutorRoleId": "0fb8eba5-a2bb-4abe-b1c1-49dfad359bb0"
-          },
-          "resources": [
-            {
-              "type": "Microsoft.Authorization/roleAssignments",
-              "apiVersion": "2022-04-01",
-              "scope": "[format('Microsoft.App/sessionPools/{0}', parameters('sessionPoolName'))]",
-              "name": "[guid(resourceId('Microsoft.App/sessionPools', parameters('sessionPoolName')), variables('sessionExecutorRoleId'), resourceGroup().id, 'chatapp')]",
-              "properties": {
-                "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('sessionExecutorRoleId'))]",
-                "principalId": "[parameters('chatApp').identity.principalId]",
-                "principalType": "ServicePrincipal"
-              }
-            }
-          ]
-        }
-      },
-      "dependsOn": [
-        "[resourceId('Microsoft.Resources/deployments', 'container-app')]",
-        "[resourceId('Microsoft.Resources/deployments', 'session-pool')]"
+        "[resourceId('Microsoft.App/sessionPools', variables('sessionPoolName'))]"
       ]
     },
     {
@@ -658,9 +593,6 @@
           },
           "tagName": {
             "value": "[variables('tagName')]"
-          },
-          "location": {
-            "value": "[parameters('containerAppsLocation')]"
           }
         },
         "template": {
@@ -669,8 +601,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.31.34.60546",
-              "templateHash": "11793760067084325589"
+              "version": "0.30.23.60470",
+              "templateHash": "11298819567915942976"
             }
           },
           "parameters": {
@@ -688,9 +620,6 @@
             },
             "tagName": {
               "type": "string"
-            },
-            "location": {
-              "type": "string"
             }
           },
           "variables": {
@@ -702,7 +631,7 @@
               "type": "Microsoft.App/jobs",
               "apiVersion": "2024-02-02-preview",
               "name": "[variables('jobName')]",
-              "location": "[parameters('location')]",
+              "location": "[resourceGroup().location]",
               "properties": {
                 "environmentId": "[parameters('envId')]",
                 "workloadProfileName": "Consumption",
@@ -786,8 +715,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.31.34.60546",
-                      "templateHash": "5693448110738697373"
+                      "version": "0.30.23.60470",
+                      "templateHash": "12047984824538583001"
                     }
                   },
                   "parameters": {

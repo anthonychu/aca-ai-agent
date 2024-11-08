@@ -2,19 +2,23 @@ targetScope = 'resourceGroup'
 
 var openAIAccountName = 'openai-${uniqueString(resourceGroup().id)}'
 
-@allowed([
-  'Canada East'
-  'Australia East'
-  'France Central'
-  'South India'
-  'Sweden Central'
-  'UK South'
-  'West US'
-])
+// @allowed([
+  //   'Sweden Central'
+  //   'Australia East'
+  //   'France Central'
+  //   // 'UK South'
+  //   // 'West US'
+//   'Canada East'
+//   // 'South India'
+// ])
 @description('The region where the Azure OpenAI account will be created.')
-param azureOpenAIRegion string = 'Canada East'
+param azureOpenAILocation string = resourceGroup().location
 
-param sessionPoolLocation string = 'North Central US'
+param sessionPoolLocation string = ''
+param containerAppsLocation string = 'Australia East'
+
+var trimmedResourceGroupLocation = trim(toLower(resourceGroup().location))
+var actualSessionPoolLocation = !empty(sessionPoolLocation) ? sessionPoolLocation : (trimmedResourceGroupLocation == 'australiaeast' || trimmedResourceGroupLocation == 'swedencentral' ? resourceGroup().location : 'North Central US')
 
 var searchServiceName = 'srch-lab-search-${uniqueString(resourceGroup().id)}'
 var acrName = 'crlabregistry${uniqueString(resourceGroup().id)}'
@@ -27,7 +31,7 @@ var tagName = 'resourcesExist'
 
 resource openAIAccount 'Microsoft.CognitiveServices/accounts@2024-04-01-preview' = {
   name: openAIAccountName
-  location: azureOpenAIRegion
+  location: azureOpenAILocation
   sku: {
     name: 'S0'
   }
@@ -170,7 +174,7 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2023-05-01' = {
 
 resource env 'Microsoft.App/managedEnvironments@2024-02-02-preview' = {
   name: acaEnvName
-  location: resourceGroup().location
+  location: containerAppsLocation
   properties: {
     appLogsConfiguration: {
       destination: 'log-analytics'
@@ -215,25 +219,35 @@ resource acrRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' 
 }
 
 
-resource sessionPool 'Microsoft.App/sessionPools@2024-02-02-preview' = {
-  name: sessionPoolName
-  location: sessionPoolLocation
-  properties: {
-    poolManagementType: 'Dynamic'
-    containerType: 'PythonLTS'
-    scaleConfiguration: {
-      maxConcurrentSessions: 50
-    }
-    dynamicPoolConfiguration: {
-      executionType: 'Timed'
-      cooldownPeriodInSeconds: 300
-    }
-    sessionNetworkConfiguration: {
-      status: 'EgressDisabled'
-    }
+// resource sessionPool 'Microsoft.App/sessionPools@2024-02-02-preview' = {
+//   name: sessionPoolName
+//   location: sessionPoolLocation
+//   properties: {
+//     poolManagementType: 'Dynamic'
+//     containerType: 'PythonLTS'
+//     scaleConfiguration: {
+//       maxConcurrentSessions: 50
+//     }
+//     dynamicPoolConfiguration: {
+//       executionType: 'Timed'
+//       cooldownPeriodInSeconds: 300
+//     }
+//     sessionNetworkConfiguration: {
+//       status: 'EgressDisabled'
+//     }
+//   }
+// }
+
+
+module sessionPoolModule 'session-pool.bicep' = {
+  name: 'session-pool'
+  params: {
+    name: sessionPoolName
+    location: actualSessionPoolLocation
   }
 }
 
+var sessionPool = sessionPoolModule.outputs.sessionPool
 
 module chatApp 'container-app.bicep' = {
   name: 'container-app'
@@ -244,17 +258,26 @@ module chatApp 'container-app.bicep' = {
     sessionPoolEndpoint: sessionPool.properties.poolManagementEndpoint
     acrServer: registry.properties.loginServer
     tagName: tagName
+    location: containerAppsLocation
   }
 }
 
-var sessionExecutorRoleId = '0fb8eba5-a2bb-4abe-b1c1-49dfad359bb0'
-resource sessionExecutorRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(sessionPool.id, sessionExecutorRoleId, resourceGroup().id, 'chatapp')
-  scope: sessionPool
-  properties: {
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', sessionExecutorRoleId)
-    principalId: chatApp.outputs.chatApp.identity.principalId
-    principalType: 'ServicePrincipal'
+// var sessionExecutorRoleId = '0fb8eba5-a2bb-4abe-b1c1-49dfad359bb0'
+// resource sessionExecutorRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+//   name: guid(sessionPool.id, sessionExecutorRoleId, resourceGroup().id, 'chatapp')
+//   scope: sessionPool
+//   properties: {
+//     roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', sessionExecutorRoleId)
+//     principalId: chatApp.outputs.chatApp.identity.principalId
+//     principalType: 'ServicePrincipal'
+//   }
+// }
+
+module sessionPoolRoleAssignment 'session-pool-role-assignment.bicep' = {
+  name: 'session-pool-role-assignment'
+  params: {
+    chatApp: chatApp.outputs.chatApp
+    sessionPoolName: sessionPool.Name
   }
 }
 
@@ -300,6 +323,7 @@ module indexerJob 'container-job.bicep' = {
     openAIEndpoint: openAIAccount.properties.endpoint
     searchEndpoint: 'https://${aiSearch.name}.search.windows.net'
     tagName: tagName
+    location: containerAppsLocation
   }
 }
 
@@ -345,28 +369,6 @@ resource tags 'Microsoft.Resources/tags@2024-03-01' = {
     chatApp
     indexerJob
   ]
-}
-
-resource helloApp 'Microsoft.App/containerApps@2024-03-01' = {
-  name: 'hello-app'
-  location: resourceGroup().location
-  properties: {
-    managedEnvironmentId: env.id
-    configuration: {
-      ingress: {
-        external: true
-        targetPort: 80
-      }
-    }
-    template: {
-      containers: [
-        {
-          name: 'hello-app'
-          image: 'mcr.microsoft.com/k8se/quickstart:latest'
-        }
-      ]
-    }
-  }
 }
 
 output STORAGE_ACCOUNT_NAME string = storageAccount.name

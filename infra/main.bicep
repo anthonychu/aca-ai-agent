@@ -103,7 +103,7 @@ resource aiSearch 'Microsoft.Search/searchServices@2024-06-01-preview' = {
       }
     }
     disabledDataExfiltrationOptions: []
-    semanticSearch: 'free'
+    semanticSearch: 'disabled'
   }
   sku: {
     name: 'basic'

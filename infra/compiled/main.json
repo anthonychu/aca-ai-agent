@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.31.34.60546",
-      "templateHash": "14419689697583240972"
+      "templateHash": "12296460846568442616"
     }
   },
   "parameters": {
@@ -160,7 +160,7 @@
           }
         },
         "disabledDataExfiltrationOptions": [],
-        "semanticSearch": "free"
+        "semanticSearch": "disabled"
       },
       "sku": {
         "name": "basic"

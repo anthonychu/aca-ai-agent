@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.31.34.60546",
-      "templateHash": "12296460846568442616"
+      "templateHash": "13507272547209546090"
     }
   },
   "parameters": {
@@ -590,7 +590,7 @@
             "value": "[reference(resourceId('Microsoft.Resources/deployments', 'container-app'), '2022-09-01').outputs.chatApp.value]"
           },
           "sessionPoolName": {
-            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'session-pool'), '2022-09-01').outputs.sessionPool.value.Name]"
+            "value": "[variables('sessionPoolName')]"
           }
         },
         "template": {

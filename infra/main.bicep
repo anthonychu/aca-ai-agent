@@ -277,8 +277,12 @@ module sessionPoolRoleAssignment 'session-pool-role-assignment.bicep' = {
   name: 'session-pool-role-assignment'
   params: {
     chatApp: chatApp.outputs.chatApp
-    sessionPoolName: sessionPool.Name
+    sessionPoolName: sessionPoolName
   }
+  dependsOn: [
+    sessionPoolModule
+    chatApp
+  ]
 }
 
 var searchIndexDataContributorRoleId = '8ebe5a00-799e-43f5-93ac-243d3dce84a7'

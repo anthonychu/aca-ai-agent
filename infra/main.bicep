@@ -114,7 +114,7 @@ resource aiSearch 'Microsoft.Search/searchServices@2024-06-01-preview' = {
 
 resource registry 'Microsoft.ContainerRegistry/registries@2023-11-01-preview' = {
   sku: {
-    name: 'Standard'
+    name: 'Premium'
   }
   name: acrName
   location: resourceGroup().location

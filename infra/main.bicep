@@ -117,7 +117,7 @@ resource registry 'Microsoft.ContainerRegistry/registries@2023-11-01-preview' = 
     name: 'Premium'
   }
   name: acrName
-  location: resourceGroup().location
+  location: containerAppsLocation
   tags: {}
   properties: {
     adminUserEnabled: false

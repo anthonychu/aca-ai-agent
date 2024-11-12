@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.31.34.60546",
-      "templateHash": "1966365155995461040"
+      "templateHash": "8913327925515497968"
     }
   },
   "parameters": {
@@ -173,7 +173,7 @@
       "sku": {
         "name": "Premium"
       },
-      "location": "[resourceGroup().location]",
+      "location": "[parameters('containerAppsLocation')]",
       "tags": {},
       "properties": {
         "adminUserEnabled": false,
